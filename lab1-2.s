@@ -8,8 +8,15 @@ reset:
 waitfora:	
 	jsr getkey
 	cmp #$A,d4
-	bne waitfora		
-activated	
+	beq activated
+	cmp #$C,d4
+	beq jamforkod       ;Om C är intryckt, jämför de två strängarna annars vänta på a igen
+	cmp #$A,d4			;Om C inte är intryckt, spara värdet
+	bge waitfora		;Om inte mellan 0-9, kolla igen
+	jsr addkey
+	bra waitfora
+activated:	
+	jsr clearinput		;Gör så att den nyligen bytta koden inte ligger kvar
 	jsr activatealarm
 waitforf:
 	jsr getkey
@@ -29,6 +36,16 @@ ftryckt:
 	jsr clearinput
 	bra waitforf
 	
+jamforkod:
+	move.w $3FFC,d0
+	move.w $4000,d1
+	cmp d0,d1
+	beq bytkod
+	bra waitfora
+	
+bytkod:
+	move.w $4000,$4010
+	bra activated
 	
 rensaminne:
 	move.b #228,d7
@@ -57,7 +74,10 @@ slut:
 	rts
 	
 addkey:
-	
+		move.b $3FFD,$3FFC ;Extra stort register
+		move.b $3FFE,$3FFD
+		move.b $3FFF,$3FFE
+		move.b $4000,$3FFF
 		move.b $4001,$4000
 		move.b $4002,$4001
 		move.b $4003,$4002
@@ -66,7 +86,10 @@ addkey:
 	
 	
 clearinput:
-	
+		move.b #$40,$3FFC
+		move.b #$40,$3FFD
+		move.b #$40,$3FFE
+		move.b #$40,$3FFF
 		move.b #$40,$4000
 		move.b #$40,$4001
 		move.b #$40,$4002

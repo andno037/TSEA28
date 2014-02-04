@@ -1,8 +1,14 @@
+;Snyggare felmeddelande
+;d6 används som lagring av antalet felaktiga försök
+;$4500 innehåller räknarens tiotalsvärde och $4501 innehåller entalsvärdet
 
 start:
+	move.l #$7000,a7
 	jsr setuppia
 	jsr setuptext
 reset:
+	move.w #$3030,$4500
+	move.b #0,d6
 	jsr clearinput
 	jsr deactivatealarm
 waitfora:	
@@ -23,12 +29,27 @@ ftryckt:
 	jsr checkcode
 	cmp #1,d4
 	beq reset
+	jsr raknaupp
 	move.b #16,d5
 	move.l #$4020,a4
 	jsr printstring
+	
+	move.b #2,d5		;Skriv ut antalet fel
+	move.l #$4500,a4
+	jsr printstring
+	
 	jsr clearinput
 	bra waitforf
 	
+raknaupp:
+	add.b #1,$4501
+	cmp #$3A,$4501
+	bne slutarakna
+	move.b #$30,$4501
+	add.b #1,$4500
+slutarakna:	
+	rts
+		
 	
 rensaminne:
 	move.b #228,d7
@@ -124,7 +145,7 @@ setuptext:
 	move.l #$46656c61,$4020
 	move.l #$6b746967,$4024
 	move.l #$206b6f64,$4028
-	move.l #$21212121,$402c
+	move.l #$21212120,$402c
 	rts
 		
 setuppia:
