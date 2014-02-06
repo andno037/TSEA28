@@ -1,5 +1,6 @@
-
 start:
+	move.l #$01020304,$4010
+	lea $7000,a7
 	jsr setuppia
 	jsr setuptext
 reset:
@@ -7,21 +8,22 @@ reset:
 	jsr deactivatealarm
 waitfora:	
 	jsr getkey
-	cmp #$A,d4
+	cmp.b #$A,d4
 	bne waitfora		
 activated	
 	jsr activatealarm
+	
 waitforf:
 	jsr getkey
-	cmp #$F,d4
+	cmp.b #$F,d4
 	beq ftryckt
-	cmp #$A,d4
+	cmp.b #$A,d4
 	bge waitforf
 	jsr addkey
 	bra waitforf
 ftryckt:
 	jsr checkcode
-	cmp #1,d4
+	cmp.b #1,d4
 	beq reset
 	move.b #16,d5
 	move.l #$4020,a4
@@ -35,22 +37,10 @@ rensaminne:
 	trap #14
 	
 checkcode:
-	move.b #0,d4
-	move.b $4000,d0
-	move.b $4010,d1
-	cmp d0,d1
-	bne slut
-	move.b $4001,d0
-	move.b $4011,d1
-	cmp d0,d1
-	bne slut
-	move.b $4002,d0
-	move.b $4012,d1
-	cmp d0,d1
-	bne slut
-	move.b $4003,d0
-	move.b $4013,d1
-	cmp d0,d1
+	move.l #0,d4
+	move.l $4000,d0
+	move.l $4010,d1
+	cmp.l d0,d1
 	bne slut
 	move.b #1,d4
 slut:
@@ -78,9 +68,10 @@ clearinput:
 	
 getkey:
 		;d0
+		
 		move.b $10082,d0 ;hämtar värden
 		and.b #%10000,d0 ; kollar strobe
-		cmp #0,d0
+		cmp.b #0,d0
 		beq getkey		; om ej tryck kolla igen
 skapavärde:
 		move.b $10082,d0  ;hämta värd
@@ -89,7 +80,7 @@ skapavärde:
 loop:		
 		move.b $10082,d0	;hämta värde
 		and.b #%10000,d0	; kollar strobe
-		cmp #0,d0
+		cmp.b #0,d0
 		bne loop		;om man har släpte är det dags att gå till backa
 		rts
 
@@ -124,7 +115,7 @@ setuptext:
 	move.l #$46656c61,$4020
 	move.l #$6b746967,$4024
 	move.l #$206b6f64,$4028
-	move.l #$21212121,$402c
+	move.l #$21210A0D,$402c
 	rts
 		
 setuppia:
